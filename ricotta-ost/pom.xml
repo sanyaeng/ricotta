@@ -34,7 +34,7 @@
         <gae.version>1.7.0</gae.version>
         <gae.application.id>ricotta-open</gae.application.id>
         <gae.application.version>lab</gae.application.version>
-        <mardao.version>1.36</mardao.version>
+        <mardao.version>1.37</mardao.version>
         <spring.version>3.1.0.RELEASE</spring.version>
         <downloadSources>true</downloadSources>
         <logging.level>ALL</logging.level>
@@ -213,6 +213,18 @@
             <artifactId>appengine-testing</artifactId>
             <version>${gae.version}</version>
             <scope>test</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-fileupload</groupId>
+            <artifactId>commons-fileupload</artifactId>
+            <version>1.2.1</version>
         </dependency>
     </dependencies>
 

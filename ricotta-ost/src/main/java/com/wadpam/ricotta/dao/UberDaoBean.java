@@ -36,6 +36,8 @@ import net.sf.mardao.api.domain.PrimaryKeyEntity;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.xml.sax.SAXException;
 
 import com.google.appengine.api.blobstore.BlobKey;
@@ -587,6 +589,11 @@ public class UberDaoBean extends AbstractDaoController implements UberDao, Admin
         final String separator = ",";
         final String[] subs = subsets.isEmpty() ? null : subsets.split(separator);
         
+        // subs is null
+        if (subs == null) {
+            return null;
+        }
+        
         // Generate branch key as parent key
         Key projKey = projDao.findByPrimaryKey(projectName).getPrimaryKey();
         Key branchKey = branchDao.findByPrimaryKey(projKey, branchName).getPrimaryKey();
@@ -633,13 +640,54 @@ public class UberDaoBean extends AbstractDaoController implements UberDao, Admin
         tokn.setViewContext(viewContext);
         LOG.debug("create for {}", tokn);
 
+        
         toknDao.persist(tokn);
 
         t10 = convert(tokn);
 
         return t10;
     }
+    
+    public boolean checkTokenAlreadyExisted(String projectName, String branchName, String tokenName) {
+        //check token is already existed :
+        final Key projKey = projDao.createKey(projectName);
+        final Key branchKey = branchDao.createKey(projKey, branchName);
+        
+        List<Tokn> tokens = toknDao.findByBranchName(branchKey, tokenName);
+        if (!(tokens == null || tokens.isEmpty())) {
+            return true;
+        }
+        return false;
+    }
+    public Tokn10 createTokenWithTranslation(String projectName, String branchName, String tokenName, String description, String context, String value, String langCode) {
+        Tokn10 t10 = null;
+        //check token already existed
+        if (checkTokenAlreadyExisted(projectName, branchName, tokenName)) {
+            return null;
+        }
+        
+        final Key projKey = projDao.createKey(projectName);
+        final Key branchKey = branchDao.createKey(projKey, branchName);
+        final Tokn tokn = new Tokn();
 
+        tokn.setBranch(branchKey);
+        tokn.setName(tokenName);
+        tokn.setDescription(description);
+
+        // context reference
+        final Key viewContext = NO_CONTEXT_NAME.equals(context) ? null : ctxtDao.createKey(branchKey, context);
+        tokn.setViewContext(viewContext);
+        LOG.debug("create for {}", tokn);
+
+        toknDao.persist(tokn);
+
+        t10 = convert(tokn);
+
+        updateTrans(projectName, branchName, t10.getId(), langCode, value);
+        
+        return t10;
+    }
+    
     public static List<Object> getKeys(List entities) {
         final List<Object> returnValue = new ArrayList<Object>();
         for(Object o : entities) {

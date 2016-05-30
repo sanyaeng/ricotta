@@ -4,15 +4,25 @@
  */
 package com.wadpam.ricotta.web;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.fileupload.FileItemIterator;
+import org.apache.commons.fileupload.FileItemStream;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.exception.ParseErrorException;
 import org.apache.velocity.exception.ResourceNotFoundException;
@@ -30,6 +40,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
+import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.wadpam.ricotta.dao.ProjDao;
 import com.wadpam.ricotta.dao.UberDaoBean;
@@ -41,6 +52,7 @@ import com.wadpam.ricotta.domain.ProjUser;
 import com.wadpam.ricotta.domain.Role;
 import com.wadpam.ricotta.domain.Subset;
 import com.wadpam.ricotta.domain.Template;
+import com.wadpam.ricotta.domain.Tokn;
 import com.wadpam.ricotta.model.v10.Blob10;
 import com.wadpam.ricotta.model.v10.Me10;
 import com.wadpam.ricotta.model.v10.Proj10;
@@ -58,7 +70,6 @@ public class RestController {
 
     private UberDaoBean            uberDao;
 
-    protected ProjDao              projDao;
 
     private final BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
     
@@ -175,6 +186,9 @@ public class RestController {
         if (!"null".equals(subsets)
                 && (null != uberDao.TokenExistsBySubsets(projectName, ProjectHandlerInterceptor.NAME_TRUNK, name, subsets, null))) {
             return new ResponseEntity(HttpStatus.CONFLICT);
+        } else if (uberDao.checkTokenAlreadyExisted(projectName, ProjectHandlerInterceptor.NAME_TRUNK, name)) {
+            //check token is already existed :
+            return new ResponseEntity(HttpStatus.CONFLICT);
         }
 
         Tokn10 body = uberDao.createToken(projectName, ProjectHandlerInterceptor.NAME_TRUNK, name, description, context);
@@ -186,7 +200,87 @@ public class RestController {
         }
         return new ResponseEntity(body, HttpStatus.OK);
     }
+    /**
+     * import csv file, then content has no header: see example
+     * 
+     * token1;value1
+     * token2;value2
+     * ....
+     * 
+     * */
+    @RequestMapping(value = "project/v10/{projectName}/{lang}", method = RequestMethod.POST)
+    public ResponseEntity<List<String>> importCsvTokens(@PathVariable String projectName, @PathVariable String lang,
+            HttpServletRequest request) throws Exception {
 
+        LOG.info("import csv token for project {} , in lang {} ", projectName, lang);
+        final String context = UberDaoBean.NO_CONTEXT_NAME;
+        
+        final Collection<String> tokenValues = importCSV(request);
+        if (tokenValues == null) {
+            return new ResponseEntity(HttpStatus.NOT_ACCEPTABLE);
+        }
+        //one line contain token;value
+        for (String items : tokenValues) {
+            final String[] array = items.split(";");
+            final String token=array[0];
+            final String value=array[1];
+            LOG.debug("token : {}, value {}", token, value);
+            if (StringUtils.isNotEmpty(token)) {
+                //create token with translation
+                uberDao.createTokenWithTranslation(projectName, ProjectHandlerInterceptor.NAME_TRUNK, token, token, context, value, lang);
+            }
+        }
+        
+        return new ResponseEntity(HttpStatus.OK);
+    }
+    
+    /***
+     * parseText
+     * 
+     * @param input Reader
+     * @return Collection<String
+     * @throws IOException
+     */
+    public static Collection<String> parseText(Reader input) throws IOException {
+        BufferedReader reader = new BufferedReader(input);
+        Collection<String> list = new ArrayList<String>();
+        String line = reader.readLine();
+        while (line != null) {
+            list.add(line);
+            line = reader.readLine();
+        }
+        return list;
+    }
+    
+    private Collection<String> importCSV(HttpServletRequest request) throws Exception {
+     // TODO : parse CSV file content just one string per line.
+        InputStream stream = null;
+        ServletFileUpload upload = new ServletFileUpload();
+        FileItemIterator iterator = upload.getItemIterator(request);
+        while (iterator.hasNext()) {
+            FileItemStream item = iterator.next();
+
+            if (item.isFormField()) {
+                LOG.debug("Got a form field: {} - continue .... " + item.getFieldName());
+            } else {
+                stream = item.openStream();
+                LOG.debug("Got an uploaded file: " + item.getFieldName() + ", name = " + item.getName());
+                break;
+            }
+        }
+        // parsevoucherCodes
+        Collection<String> lstCodes = null != stream ? parseText(new InputStreamReader(stream))
+                : Collections.EMPTY_LIST;
+
+        // check lstCodes maximum line only 1500 line
+        if (lstCodes.size() > 1500) {
+            LOG.error(" upload the voucher codes are allowed only {} line maximum! abort the request", 1500);
+            return null;
+            //return new ResponseEntity(HttpStatus.NOT_ACCEPTABLE);
+        }
+        
+        return lstCodes;
+    }
     @RequestMapping(value = "lang/v10", method = RequestMethod.GET)
     public ResponseEntity<Collection<Lang>> getLanguages() {
         final List<Lang> body = uberDao.getLang();
