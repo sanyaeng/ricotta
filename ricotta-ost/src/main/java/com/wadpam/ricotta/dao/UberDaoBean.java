@@ -663,6 +663,7 @@ public class UberDaoBean extends AbstractDaoController implements UberDao, Admin
         Tokn10 t10 = null;
         //check token already existed
         if (checkTokenAlreadyExisted(projectName, branchName, tokenName)) {
+            LOG.warn("token : {} is already existed in project {} , skip this line", tokenName, projectName);
             return null;
         }
         

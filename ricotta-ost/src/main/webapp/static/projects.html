@@ -1,116 +1,124 @@
 <div class="projects">
-	<div> <h1>Projects </h1></div>
-	<a data-toggle="modal" href="#createProjectDialog" class="btn btn-primary" onclick="setDefaultLang();clearLastText();">+ Project</a>
-	<div id="projects"></div>
-	
-	<!-- using modal instead  -->
-	<div id="createProjectDialog" class="modal hide fade in" style="display: none;">
-		<div class="modal-header">  
-			<a class="close" data-dismiss="modal">×</a>
-			<h3>Create a Project</h3>
-		</div> 
-		<div class="modal-body">
-			<div class="alert alert-error hide">  
-  				<p class="validateTips"></p>
-			</div> 
-		    <form>
-		    	<div class="createProjectContent">
-			        <div class="box">
-			            <label class="modal-label" id="pnameLabel"> Name</label>
-			            <input class="modal-input" id="projName" name="projName"  type="text"/>
-			        </div>
-		    	</div>
-		        <div class="divider horiziontal-divider"></div>
-		        <div class="createProjectContent">
-			        <div class="box">
-			        	<label class="modal-label" id="pDefaultLang" for="defaultLang">Source language</label>
-			            <select class="modal-input" id="defaultLang"></select>
-			        </div>
-		        </div>
-		    </form>
-		</div>
-		<div class="modal-footer">
-			<a class="btn btn-success btn-create">Save<img id="loading" class="hide" src="img/ajax-loader-save.gif" style="float:right; vertical-align:middle; margin-right:5px; margin-top: 2px;"/></a>
-		</div>
-	</div>
-	
+    <div> <h1>Projects </h1></div>
+    <a data-toggle="modal" href="#createProjectDialog" class="btn btn-primary" onclick="setDefaultLang();clearLastText();">+ Project</a>
+    <div id="projects"></div>
+    
+    <!-- using modal instead  -->
+    <div id="createProjectDialog" class="modal hide fade in" style="display: none;">
+        <div class="modal-header">  
+            <a class="close" data-dismiss="modal">×</a>
+            <h3>Create a Project</h3>
+        </div> 
+        <div class="modal-body">
+            <div class="alert alert-error hide">  
+                <p class="validateTips"></p>
+            </div> 
+            <form>
+                <div class="createProjectContent">
+                    <div class="box">
+                        <label class="modal-label" id="pnameLabel"> Name</label>
+                        <input class="modal-input" id="projName" name="projName"  type="text"/>
+                    </div>
+                </div>
+                <div class="divider horiziontal-divider"></div>
+                <div class="createProjectContent">
+                    <div class="box">
+                        <label class="modal-label" id="pDefaultLang" for="defaultLang">Source language</label>
+                        <select class="modal-input" id="defaultLang"></select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <a class="btn btn-success btn-create">Save<img id="loading" class="hide" src="img/ajax-loader-save.gif" style="float:right; vertical-align:middle; margin-right:5px; margin-top: 2px;"/></a>
+        </div>
+    </div>
+    
 <script type="text/javascript">
-	var globalLang;
-	var dataObject, arrayProjects;
-	function initDataObject() {
-		dataObject = {
-			tokensArrDataTable: null, 
-			tokenSubsetHeader: null,
-			currentProject: null,
-			projects: null,
-			tokenTable: null,
-		};
-	}
-	function setDefaultLang() {
-		$("#defaultLang").val("en_GB");
-	}
-	function getLanguageName(langCode) {
-		var name;
-		$.map(globalLang, function(l, i) {
-			if(l.code == langCode) {
-				name = l.name;
-				return false;
-			}
-		});
-		return name;
-	}
-	
-	function loadGlobalLanguage() {
-		ricottaAPI.loadLanguages(function(data){
-	    	globalLang = data;
-	    	delete data;
-	    });
-	}
-	/**
-	 * Remove out the space
-	 */
-	function trim(str) {
-		var splitStr = str.split(" ");
-		var newStr = "";
-		for(var i in splitStr){
-			newStr += splitStr[i];
-		}
-		delete splitStr;
-	    return newStr;
-	}
-	function populateProjects(data) {
-		if(typeof dataObject === 'undefined') {
-			initDataObject();
-		}
-		dataObject.projects = [];
-		// login user
-		var principal = $("#headerUser").data("json");
-		$("#createProjectDialog").modal("hide");
-	    $("#projects").empty();
-	    $.map(data, function(p, i) {
-	    	var deleteAction = "<div class='delete' onclick='deleteProj(\""+i+"\", \""+ p.name +"\");'><span class='item-icon delete'></span><br/>Delete</div>";
-	    	//if not owner
-	    	if(!((principal.email == p.owner)||(principal.email == 'test@example.com')))  deleteAction = "";
-	    	$("#projects").append("<div id='projectItem"+trim(p.name)+"' class='projectsItem'>"+
-	    								"<div id='item'><div class='pname' onclick=\"loadProject('"+ i +"')\">"+p.name+"</div>"+
-	    								"<div class='plang'>"+getProjectLanguage(p)+"</div>"+
-	    								"<div class='powner'>Owner: "+p.owner+"</div></div>"+
-	    								"<div id='itemAction'>"+
-	    									"<div onclick='exportProj(\""+i+"\");'><span class='item-icon export'></span><br/>Export</div>"+ deleteAction +
-	    									//"<div class='delete' onclick='deleteProj(\""+p.name+"\");'><span class='item-icon delete'></span><br/>Delete</div>" +
-	    								"</div>"+
-	    						  "</div>");
-	    	dataObject.projects.push(p);
-	    	delete p;
-	    	delete principal;
-	    });
-	    delete data;
-	}
-	
-	function exportProj(i) {
-		window.location.href= "http://"+ location.host + ricottaAPI.getExportUrl(dataObject.projects[i].name);
-	}
-	
+    var globalLang;
+    var dataObject, arrayProjects;
+    function initDataObject() {
+        dataObject = {
+            tokensArrDataTable: null, 
+            tokenSubsetHeader: null,
+            currentProject: null,
+            projects: null,
+            tokenTable: null,
+        };
+    }
+    function setDefaultLang() {
+        $("#defaultLang").val("en_GB");
+    }
+    function getLanguageName(langCode) {
+        var name;
+        $.map(globalLang, function(l, i) {
+            if(l.code == langCode) {
+                name = l.name;
+                return false;
+            }
+        });
+        return name;
+    }
+    
+    function loadGlobalLanguage() {
+        ricottaAPI.loadLanguages(function(data){
+            globalLang = data;
+            delete data;
+        });
+    }
+    /**
+     * Remove out the space
+     */
+    function trim(str) {
+        var splitStr = str.split(" ");
+        var newStr = "";
+        for(var i in splitStr){
+            newStr += splitStr[i];
+        }
+        delete splitStr;
+        return newStr;
+    }
+    function populateProjects(data) {
+        if(typeof dataObject === 'undefined') {
+            initDataObject();
+        }
+        dataObject.projects = [];
+        // login user
+        var principal = $("#headerUser").data("json");
+        $("#createProjectDialog").modal("hide");
+        $("#projects").empty();
+        $.map(data, function(p, i) {
+            var deleteAction = "<div style='width:60px' onclick='deleteProj(\""+i+"\", \""+ p.name +"\");'><span class='item-icon delete'></span><br/>Delete</div>";
+            //if not owner
+            if(!((principal.email == p.owner)||(principal.email == 'test@example.com')))  deleteAction = "";
+            $("#projects").append("<div id='projectItem"+trim(p.name)+"' class='projectsItem'>"+
+                                        "<div id='item'><div class='pname' onclick=\"loadProject('"+ i +"')\">"+p.name+"</div>"+
+                                        "<div class='plang'>"+getProjectLanguage(p)+"</div>"+
+                                        "<div class='powner'>Owner: "+p.owner+"</div></div>"+
+                                        "<div id='itemAction'>"+
+                                           "<div style='width:60px' onclick='importToken(\""+i+"\");'><span class='item-icon import'></span><br/>Import</div>"+
+                                            "<div style='width:60px' onclick='exportProj(\""+i+"\");'><span class='item-icon export'></span><br/>Export</div>"+ deleteAction +
+                                            //"<div class='delete' onclick='deleteProj(\""+p.name+"\");'><span class='item-icon delete'></span><br/>Delete</div>" +
+                                        "</div>"+
+                                  "</div>");
+            dataObject.projects.push(p);
+            delete p;
+            delete principal;
+        });
+        delete data;
+    }
+    
+    function exportProj(i) {
+        window.location.href= "http://"+ location.host + ricottaAPI.getExportUrl(dataObject.projects[i].name);
+    }
+    
+    function importToken(i) {
+        alert('popup model import csv file');
+        //call POST API api/project/v10/${porjectName}/{lang}
+        //ex : POST api/project/v10/test/en
+    }
+    
+    
     function deleteProj(i, name) {
         var pname = typeof dataObject != "undefined"? dataObject.projects[i].name : name; 
         var confirmDelete = confirm("Are you sure you want to delete project: "+ pname);
@@ -125,91 +133,91 @@
             });
         }
     }
-	/**
-	 * Return the languages of project in strings
-	 */
-	function getProjectLanguage(p) {
-		var lang = "";
-		if(p.defProjLang) {
-			lang += getLanguageName(p.defProjLang.langCode) + ", ";
-		}
-		$.map(p.projLangs, function(l, index) {
-	        lang += getLanguageName(l.langCode) + ", ";
-	    });
-		return lang.substring(0, lang.length - 2);//remove the last comma
-	}
-	
-	function loadProjectTokens(pname) {
-	    ricottaAPI.getProjectTokens(pname, function(data){
-	    	dataObject.currentProject = data;
-	    	delete data;
-	    }, showToast);
-	}
-	
-	function loadProject(i) {
-		if(typeof dataObject === 'undefined') {
-			initDataObject();
-			dataObject.projects = arrayProjects;
-			delete arrayProjects;
-		}
-		loadProjectTokens(dataObject.projects[i].name);
-		loadPage("project");
-	}
-	
-	function populateLanguage() {
-		loadGlobalLanguage();
-		$.map(globalLang, function(l, i){
-			$("#defaultLang").append("<option value='"+ l.code +"'>" + l.name + "</option>");
-			delete l;
-		});
-	}
-	
-	$(function() {
-		populateLanguage();
-		
-	    var projName = $("#projName"),
-	        allFields = $([]).add(projName),
-	        tips = $(".validateTips");
-		$("#createProjectDialog").find("a.btn-success").click(function() {
-			
-			// project name cannot have special characters
-			if (validName($("#projName").val())) {
-	            var bValid = true;
-	            allFields.removeClass("ui-state-error");
-	            bValid = bValid && checkEmpty(allFields) && checkLength(projName, "project name", 4, 16);
+    /**
+     * Return the languages of project in strings
+     */
+    function getProjectLanguage(p) {
+        var lang = "";
+        if(p.defProjLang) {
+            lang += getLanguageName(p.defProjLang.langCode) + ", ";
+        }
+        $.map(p.projLangs, function(l, index) {
+            lang += getLanguageName(l.langCode) + ", ";
+        });
+        return lang.substring(0, lang.length - 2);//remove the last comma
+    }
+    
+    function loadProjectTokens(pname) {
+        ricottaAPI.getProjectTokens(pname, function(data){
+            dataObject.currentProject = data;
+            delete data;
+        }, showToast);
+    }
+    
+    function loadProject(i) {
+        if(typeof dataObject === 'undefined') {
+            initDataObject();
+            dataObject.projects = arrayProjects;
+            delete arrayProjects;
+        }
+        loadProjectTokens(dataObject.projects[i].name);
+        loadPage("project");
+    }
+    
+    function populateLanguage() {
+        loadGlobalLanguage();
+        $.map(globalLang, function(l, i){
+            $("#defaultLang").append("<option value='"+ l.code +"'>" + l.name + "</option>");
+            delete l;
+        });
+    }
+    
+    $(function() {
+        populateLanguage();
+        
+        var projName = $("#projName"),
+            allFields = $([]).add(projName),
+            tips = $(".validateTips");
+        $("#createProjectDialog").find("a.btn-success").click(function() {
+            
+            // project name cannot have special characters
+            if (validName($("#projName").val())) {
+                var bValid = true;
+                allFields.removeClass("ui-state-error");
+                bValid = bValid && checkEmpty(allFields) && checkLength(projName, "project name", 4, 16);
 
-	            if (bValid) {
-	                var projectName = projName.val();
-	                var defaultLang = $("#defaultLang option:selected").val();
-	                
-	                // start, update progress...
-	                $("#loading").show();
-	                
-	                ricottaAPI.createProject(projectName, defaultLang, 
-	                    function(p){
-	                        delete projectName;
-	                        delete defaultLang;
-	                        populateProjects(p);
-	                        
-	                        // done, remove progress...
-	                        $("#loading").hide();
-	                    }, 
-	                    function(err){
-	                        updateTips(err);
-	                    }
-	                );
-	            }
-			} else {
-				tips.text("Project's name shouldn't contains illegal character include space.");
-	            //updateTips();
-	            tips.parent().addClass("show");
-	        }
+                if (bValid) {
+                    var projectName = projName.val();
+                    var defaultLang = $("#defaultLang option:selected").val();
+                    
+                    // start, update progress...
+                    $("#loading").show();
+                    
+                    ricottaAPI.createProject(projectName, defaultLang, 
+                        function(p){
+                            delete projectName;
+                            delete defaultLang;
+                            populateProjects(p);
+                            
+                            // done, remove progress...
+                            $("#loading").hide();
+                        }, 
+                        function(err){
+                            updateTips(err);
+                        }
+                    );
+                }
+            } else {
+                tips.text("Project's name shouldn't contains illegal character include space.");
+                //updateTips();
+                tips.parent().addClass("show");
+            }
 
-		});
-		$("#createProjectDialog").modal({show:false});
-	    //retrieve all project
-		ricottaAPI.getProjects(populateProjects);
-	});
-	
-	</script>
+        });
+        $("#createProjectDialog").modal({show:false});
+        //retrieve all project
+        ricottaAPI.getProjects(populateProjects);
+    });
+    
+    </script>
 </div>

@@ -31,7 +31,7 @@
 
     <!-- Specify hard-coded project properties here -->
     <properties>
-        <gae.version>1.7.0</gae.version>
+        <gae.version>1.9.27</gae.version>
         <gae.application.id>ricotta-open</gae.application.id>
         <gae.application.version>lab</gae.application.version>
         <mardao.version>1.37</mardao.version>
@@ -45,8 +45,9 @@
         <profile>
             <id>test</id>
             <properties>
+                <gae.application.id>sm-translation-test</gae.application.id>
                 <gae.application.version>test</gae.application.version>
-                <logging.level>INFO</logging.level>
+                <logging.level>ALL</logging.level>
             </properties>
         </profile>
 
@@ -54,7 +55,7 @@
             <id>stage</id>
             <properties>
                 <gae.application.version>stage</gae.application.version>
-                <logging.level>ALL</logging.level>
+                <logging.level>INFO</logging.level>
             </properties>
         </profile>
 
@@ -244,14 +245,23 @@
         </resources>
 
         <plugins>
+             <plugin>
+                <groupId>com.google.appengine</groupId>
+                <artifactId>appengine-maven-plugin</artifactId>
+                <version>${gae.version}</version>
+                <configuration>
+                    <disableUpdateCheck>true</disableUpdateCheck>
+                </configuration>
+            </plugin>
+            
             <!-- Java compiler version -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.5.1</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                 </configuration>
                 <executions>
                     <!-- extra compile step of domain classes before generator processing -->
@@ -376,7 +386,7 @@
             <plugin>
                 <groupId>net.kindleit</groupId>
                 <artifactId>maven-gae-plugin</artifactId>
-                <version>0.9.2</version>
+                <version>0.9.6</version>
                 <configuration>
                     <port>8282</port>
                     <monitorPort>8287</monitorPort>
@@ -389,7 +399,7 @@
                     <dependency>
                         <groupId>net.kindleit</groupId>
                         <artifactId>gae-runtime</artifactId>
-                        <version>${gae.version}</version>
+                        <version>1.8.8</version>
                         <type>pom</type>
                     </dependency>
                     <dependency>

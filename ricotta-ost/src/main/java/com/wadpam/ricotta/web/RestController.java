@@ -241,7 +241,7 @@ public class RestController {
      * @return Collection<String
      * @throws IOException
      */
-    public static Collection<String> parseText(Reader input) throws IOException {
+    public Collection<String> parseText(Reader input) throws IOException {
         BufferedReader reader = new BufferedReader(input);
         Collection<String> list = new ArrayList<String>();
         String line = reader.readLine();
@@ -269,7 +269,7 @@ public class RestController {
             }
         }
         // parsevoucherCodes
-        Collection<String> lstCodes = null != stream ? parseText(new InputStreamReader(stream))
+        final Collection<String> lstCodes = null != stream ? parseText(new InputStreamReader(stream))
                 : Collections.EMPTY_LIST;
 
         // check lstCodes maximum line only 1500 line
