@@ -49,7 +49,7 @@
 			  <strong>Warning!</strong> please select file to import.
 			</div>
 			<div class="alert alert-danger dangerText hide">
-			  <strong>Failed!</strong> please try again.
+			  <strong>Failed!</strong> please select .csv file and try again.
 			</div>
 
             <div class="createProjectContent csvLanguage">
@@ -186,10 +186,10 @@
 			request.onload = function(oEvent) {
 			    if (request.status == 200) {
 			      $('.successText').show();
-			      $('#importCsvForm, #btnImportCsv, .warningText, .csvLanguage').hide();
+			      $('#importCsvForm, #btnImportCsv, .warningText, .dangerText, .csvLanguage').hide();
 			      $('.csvFooter').append("<a id='btnGotoProject' class='btn btn-success btn-create' onclick='loadProject(\""+projectToken+"\");closeModal(\"importCsvFileDialog\");'>Go to project</a>");
 			    }else{
-			    	$('.dangerText').show;
+			    	$('.dangerText').show();
 			    }
 			  };
 			request.send(formData);
