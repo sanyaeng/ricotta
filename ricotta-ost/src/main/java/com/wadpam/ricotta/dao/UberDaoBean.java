@@ -648,40 +648,39 @@ public class UberDaoBean extends AbstractDaoController implements UberDao, Admin
         return t10;
     }
     
-    public boolean checkTokenAlreadyExisted(String projectName, String branchName, String tokenName) {
+    public Tokn checkTokenAlreadyExisted(String projectName, String branchName, String tokenName) {
         //check token is already existed :
         final Key projKey = projDao.createKey(projectName);
         final Key branchKey = branchDao.createKey(projKey, branchName);
         
         List<Tokn> tokens = toknDao.findByBranchName(branchKey, tokenName);
         if (!(tokens == null || tokens.isEmpty())) {
-            return true;
+            return tokens.get(0);
         }
-        return false;
+        return null;
     }
     public Tokn10 createTokenWithTranslation(String projectName, String branchName, String tokenName, String description, String context, String value, String langCode) {
         Tokn10 t10 = null;
+        Tokn tokn = checkTokenAlreadyExisted(projectName, branchName, tokenName);
         //check token already existed
-        if (checkTokenAlreadyExisted(projectName, branchName, tokenName)) {
-            LOG.warn("token : {} is already existed in project {} , skip this line", tokenName, projectName);
-            return null;
+        if (tokn !=null) {
+            LOG.warn("token : {} is already existed in project {}", tokenName, projectName);
+        } else {
+            final Key projKey = projDao.createKey(projectName);
+            final Key branchKey = branchDao.createKey(projKey, branchName);
+            tokn = new Tokn();
+
+            tokn.setBranch(branchKey);
+            tokn.setName(tokenName);
+            tokn.setDescription(description);
+            // context reference
+            final Key viewContext = NO_CONTEXT_NAME.equals(context) ? null : ctxtDao.createKey(branchKey, context);
+            tokn.setViewContext(viewContext);
+            LOG.debug("create for {}", tokn);
+
+            // save into db
+            toknDao.persist(tokn);
         }
-        
-        final Key projKey = projDao.createKey(projectName);
-        final Key branchKey = branchDao.createKey(projKey, branchName);
-        final Tokn tokn = new Tokn();
-
-        tokn.setBranch(branchKey);
-        tokn.setName(tokenName);
-        tokn.setDescription(description);
-
-        // context reference
-        final Key viewContext = NO_CONTEXT_NAME.equals(context) ? null : ctxtDao.createKey(branchKey, context);
-        tokn.setViewContext(viewContext);
-        LOG.debug("create for {}", tokn);
-
-        toknDao.persist(tokn);
-
         t10 = convert(tokn);
 
         updateTrans(projectName, branchName, t10.getId(), langCode, value);

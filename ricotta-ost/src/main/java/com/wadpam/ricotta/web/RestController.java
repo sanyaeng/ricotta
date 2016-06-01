@@ -40,9 +40,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
-import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.users.UserServiceFactory;
-import com.wadpam.ricotta.dao.ProjDao;
 import com.wadpam.ricotta.dao.UberDaoBean;
 import com.wadpam.ricotta.domain.Ctxt;
 import com.wadpam.ricotta.domain.Lang;
@@ -52,7 +50,6 @@ import com.wadpam.ricotta.domain.ProjUser;
 import com.wadpam.ricotta.domain.Role;
 import com.wadpam.ricotta.domain.Subset;
 import com.wadpam.ricotta.domain.Template;
-import com.wadpam.ricotta.domain.Tokn;
 import com.wadpam.ricotta.model.v10.Blob10;
 import com.wadpam.ricotta.model.v10.Me10;
 import com.wadpam.ricotta.model.v10.Proj10;
@@ -186,7 +183,7 @@ public class RestController {
         if (!"null".equals(subsets)
                 && (null != uberDao.TokenExistsBySubsets(projectName, ProjectHandlerInterceptor.NAME_TRUNK, name, subsets, null))) {
             return new ResponseEntity(HttpStatus.CONFLICT);
-        } else if (uberDao.checkTokenAlreadyExisted(projectName, ProjectHandlerInterceptor.NAME_TRUNK, name)) {
+        } else if (uberDao.checkTokenAlreadyExisted(projectName, ProjectHandlerInterceptor.NAME_TRUNK, name) !=null) {
             //check token is already existed :
             return new ResponseEntity(HttpStatus.CONFLICT);
         }
