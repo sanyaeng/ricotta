@@ -33,10 +33,53 @@
             <a class="btn btn-success btn-create">Save<img id="loading" class="hide" src="img/ajax-loader-save.gif" style="float:right; vertical-align:middle; margin-right:5px; margin-top: 2px;"/></a>
         </div>
     </div>
-    
+
+    <!-- import csv file modal  -->
+    <div id="importCsvFileDialog" class="modal hide fade in" style="display: none;">
+        <div class="modal-header">  
+            <a class="close" data-dismiss="modal">×</a>
+            <h3>Import csv file</h3>
+        </div> 
+        <div class="modal-body">
+            <!-- Warning message -->
+            <div class="alert alert-success successText hide">
+			  <strong>Success!</strong> file upload successfully.
+			</div>
+			<div class="alert alert-warning warningText hide">
+			  <strong>Warning!</strong> please select file to import.
+			</div>
+			<div class="alert alert-danger dangerText hide">
+			  <strong>Failed!</strong> please try again.
+			</div>
+
+            <div class="createProjectContent csvLanguage">
+                <div class="box">
+                    <label class="modal-label" id="pCsvDefaultLang" for="csvDefaultLang">Source language</label>
+                    <select class="modal-input" id="csvDefaultLang"></select>
+                </div>
+            </div>
+            <div class="divider horiziontal-divider"></div>
+            <form enctype="multipart/form-data" id="importCsvForm">
+                <div class="createProjectContent">
+                    <div class="box">
+                        <label class="modal-label" id="csvFileLabel">Select your csv file<br/>
+                        <span data-toggle="tooltip" data-placement="bottom" title="File must contain token and value splite by (;), and content has no header">What is csv file?</span></label>
+                        <input class="modal-input" id="inputCsvFile" name="csvFile"  type="file"/>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer csvFooter">
+            <a id="btnImportCsv" class="btn btn-success btn-create" onclick='importCsvFile();'>Import<img id="loading" class="hide" src="img/ajax-loader-save.gif" style="float:right; vertical-align:middle; margin-right:5px; margin-top: 2px;"/></a>
+        </div>
+    </div>
+
+
 <script type="text/javascript">
     var globalLang;
     var dataObject, arrayProjects;
+    var projectName;
+    var projectToken;
     function initDataObject() {
         dataObject = {
             tokensArrDataTable: null, 
@@ -47,7 +90,7 @@
         };
     }
     function setDefaultLang() {
-        $("#defaultLang").val("en_GB");
+        $("#defaultLang, #csvDefaultLang").val("en_GB");
     }
     function getLanguageName(langCode) {
         var name;
@@ -96,7 +139,7 @@
                                         "<div class='plang'>"+getProjectLanguage(p)+"</div>"+
                                         "<div class='powner'>Owner: "+p.owner+"</div></div>"+
                                         "<div id='itemAction'>"+
-                                           "<div style='width:60px' onclick='importToken(\""+i+"\");'><span class='item-icon import'></span><br/>Import</div>"+
+                                           "<div style='width:60px' onclick='importToken(\""+i+"\",\""+p.name+"\");' data-toggle='modal' href='#importCsvFileDialog' ><span class='item-icon import'></span><br/>Import</div>"+
                                             "<div style='width:60px' onclick='exportProj(\""+i+"\");'><span class='item-icon export'></span><br/>Export</div>"+ deleteAction +
                                             //"<div class='delete' onclick='deleteProj(\""+p.name+"\");'><span class='item-icon delete'></span><br/>Delete</div>" +
                                         "</div>"+
@@ -111,11 +154,51 @@
     function exportProj(i) {
         window.location.href= "http://"+ location.host + ricottaAPI.getExportUrl(dataObject.projects[i].name);
     }
+  
+    /*content has no header
+     * open import csv dialog
+     * set projectName and projectToken to global variable
+     */
+    function importToken(i, proName) {
+    	projectName = proName;
+    	projectToken = i;
+    	$('#inputCsvFile').val('');
+    	$('.successText, .warningText, .dangerText, #btnGotoProject').hide();
+	    $('#importCsvForm, #btnImportCsv, .csvLanguage').show();
+    }
     
-    function importToken(i) {
-        alert('popup model import csv file');
-        //call POST API api/project/v10/${porjectName}/{lang}
-        //ex : POST api/project/v10/test/en
+    /*
+     *send csv file to API
+     */
+    function importCsvFile() {
+    	
+		var csvFile = document.getElementById('inputCsvFile').files[0];
+		
+		if(!csvFile) {
+			$('.warningText').show();
+		}
+		else {
+			var formData = new FormData();
+			formData.append('csvFile', csvFile);
+			var csvLang = $('#csvDefaultLang').val();
+			var request = new XMLHttpRequest();
+			request.open("POST", "/api/project/v10/"+projectName+"/"+csvLang);
+			request.onload = function(oEvent) {
+			    if (request.status == 200) {
+			      $('.successText').show();
+			      $('#importCsvForm, #btnImportCsv, .warningText, .csvLanguage').hide();
+			      $('.csvFooter').append("<a id='btnGotoProject' class='btn btn-success btn-create' onclick='loadProject(\""+projectToken+"\");closeModal(\"importCsvFileDialog\");'>Go to project</a>");
+			    }else{
+			    	$('.dangerText').show;
+			    }
+			  };
+			request.send(formData);
+		}
+    }
+    
+    
+    function closeModal(modalId){
+    	$('#'+modalId).modal('hide');
     }
     
     
@@ -167,7 +250,7 @@
     function populateLanguage() {
         loadGlobalLanguage();
         $.map(globalLang, function(l, i){
-            $("#defaultLang").append("<option value='"+ l.code +"'>" + l.name + "</option>");
+            $("#defaultLang, #csvDefaultLang").append("<option value='"+ l.code +"'>" + l.name + "</option>");
             delete l;
         });
     }
